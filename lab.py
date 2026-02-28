@@ -36,6 +36,9 @@ class PrefixTree:
                 self = self.children[letters]
         self.value = value
 
+    def getKeys(self):
+        return list(self.children.keys())
+
     def incrementTree(self, word):
         """
         Increment if valid word is given to tree
@@ -196,8 +199,25 @@ def generate_edits(word):
     Finding all valid edits may result in outputting duplicate edits or the
     original word. This function must be a generator function!
     """
-    raise NotImplementedError
-
+    alphabets = "abcdefghijklmnopqrstuvwxyz"
+    def single():
+        for i  in range (len(word) + 1):
+            for a in alphabets:
+                yield word[:i] + a + word[i:]
+        
+    def other():
+        for i in range(len(word)):
+            for a in alphabets:
+                yield word[:i] + a + word[i + 1:]
+            s = word[0: i] + word[i + 1:]
+            yield s
+    def transpose():
+        for i in range(len(word) - 1):
+            adj = word[:i] + word[i + 1] + word[i] + word[i + 2:]
+            yield adj
+    yield from single()
+    yield from other()
+    yield from transpose()
 
 def autocorrect(tree, prefix, max_count=None):
     """
@@ -207,7 +227,36 @@ def autocorrect(tree, prefix, max_count=None):
     most-frequently occurring words that differ from prefix by a small edit, up to
     max_count total elements (or all elements if max_count is not specified).
     """
-    raise NotImplementedError
+    autocmp = autocomplete(tree, prefix, max_count)
+    res = set()
+    edits = []
+    visited = set()
+    x = 0
+    if(len(autocmp) == max_count):
+        return autocmp
+    for i in generate_edits(prefix):
+        if(i in tree and i not in autocmp and i not in visited):
+            edits.append((i, tree[i]))
+            visited.add(i)
+    
+    edits.sort(key = lambda x: x[1], reverse= True)
+    print(edits)
+    for t in edits:
+        if(max_count == None):
+            res.add(t[0])
+        else:
+            res.add(t[0])
+            if(len(res) + len(autocmp) ==  max_count):
+                break
+    print(res)
+    return res | autocmp
+
+    
+     
+
+
+
+    
 
 
 def word_filter(tree, pattern):
@@ -218,7 +267,46 @@ def word_filter(tree, pattern):
         - '?' - matches any single character,
         - otherwise the character must match the character in the word.
     """
-    raise NotImplementedError
+    ans = set()
+    def helper(t, pattern):
+        a = set()
+        if('?' not in pattern and '*' not in pattern):
+            if(pattern in t):
+                return {pattern}
+            else:
+                return set()
+        else:
+            for idx, char in enumerate(pattern):
+                if(t == None):
+                    break
+                if(char == '?'):
+                    keys = t.getKeys()
+                    if(keys == []):
+                        return set()
+                    for k in keys:
+                        #s = t.returnTree(k)
+                        tmp = helper(t,  k + pattern[idx + 1:])
+                        if(tmp != set()):
+                            for items in tmp:
+                                items = pattern[:idx] + items
+                                a.add(items)
+                    return a
+                if(char == '*'):
+                    keys = t.getKeys()
+                    for k in keys:
+                        tmp = helper(t, )
+                else:
+                    t = t.returnTree(char)
+
+        return a
+    return helper(tree, pattern)
+
+
+
+
+
+
+    
 
 
 if __name__ == "__main__":
@@ -230,6 +318,4 @@ if __name__ == "__main__":
     #    optionflags=_doctest_flags,
     #    verbose=True
     # )
-    s = word_frequencies('cat car carpet')
-    tree = autocomplete(s, 'car', 3)
-    
+    pass
