@@ -77,28 +77,38 @@ class PrefixTree:
         else:
             return True
 
+    
     def __iter__(self):
         """
         Generator that yields tuples of all the (word, value) pairs in the tree.
         """
-        s = ""
-        if(self.value != None):
-            yield (s , self.value)
-            s = ""
-        else:
-            for key in self.children:
-                tree = self.children[key]
+        def builder(tree, s):
+            if(tree.value is not None):
+                yield (s, tree.value)
+            for key,value in tree.children.items():
+                t = value
                 s = s + key
-                yield from tree.__iter__()
-            
+                yield from builder(t, s)
+                s = s[:-1]
 
+        return builder(self, "")
+            
+  
     def __delitem__(self, word):
         """
         Deletes the value of the given word from the tree.
         Raises a KeyError if the given word does not exist.
         Raises a TypeError if the given word is not a string.
         """
-        raise NotImplementedError
+        if(type(word) != str):
+            raise TypeError
+        tree = self.returnTree(word)
+        if(tree == None):
+            raise KeyError
+        if(tree.value == None):
+            raise KeyError
+        else:
+            tree.value = None
 
 
 def word_frequencies(text):
@@ -107,7 +117,19 @@ def word_frequencies(text):
     keys are the words that appear in the text, and whose values are the number of times
     the associated word appears in the text.
     """
-    raise NotImplementedError
+    sentence = tokenize_sentences(text)
+    tree = PrefixTree()
+    for lines in sentence:
+        words = lines.split()
+        for w in words:
+            if w in tree:
+                tree = tree.returnTree(w)
+                tree.value += 1
+            else:
+                tree[w] = 1
+    return tree 
+
+    
 
 
 def autocomplete(tree, prefix, max_count=None):
@@ -177,5 +199,5 @@ if __name__ == "__main__":
     t['met'] = 'tem'
     t['a'] = '?'
     t['map'] = -1000
-    iter(t)
-       
+    del t['map']
+    del t['map']
