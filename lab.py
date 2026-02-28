@@ -36,6 +36,20 @@ class PrefixTree:
                 self = self.children[letters]
         self.value = value
 
+    def incrementTree(self, word):
+        """
+        Increment if valid word is given to tree
+        """
+        if(type(word) != str):
+            raise TypeError 
+        for letters in word:
+            if(letters not in self.children):
+                self.children[letters] = PrefixTree()
+                self = self.children[letters]
+            else:
+                self = self.children[letters]
+        self.value += 1
+        
 
     def returnTree(self, word):
         """
@@ -49,6 +63,7 @@ class PrefixTree:
             else:
                 self = self.children[letters]
         return self
+    
 
     def __getitem__(self, word):
         """
@@ -119,14 +134,15 @@ def word_frequencies(text):
     """
     sentence = tokenize_sentences(text)
     tree = PrefixTree()
+    visited = set()
     for lines in sentence:
         words = lines.split()
         for w in words:
-            if w in tree:
-                tree = tree.returnTree(w)
-                tree.value += 1
+            if w in visited:
+                tree.incrementTree(w)
             else:
                 tree[w] = 1
+                visited.add(w)
     return tree 
 
     
@@ -138,7 +154,31 @@ def autocomplete(tree, prefix, max_count=None):
     prefix string in the given tree. Includes only the top max_count most common words
     if max_count is specified, otherwise returns all auto-completions.
     """
-    raise NotImplementedError
+    if(type(prefix) != str):
+        raise TypeError
+    res = []
+    s = tree.returnTree(prefix)
+    if(s == None):
+        return set()
+    for key, value in s:
+        res.append((prefix + key, value))
+    res.sort(key = lambda x: x[1], reverse= True)
+    ans = set()
+    if(max_count == 0):
+        return ans
+    if(max_count == None):
+        for t in res:
+            ans.add(t[0])
+    else:
+        for t in res:
+            ans.add(t[0])
+            if(len(ans) == max_count):
+                break
+    return ans
+        
+    
+
+    
 
 
 def generate_edits(word):
@@ -190,14 +230,6 @@ if __name__ == "__main__":
     #    optionflags=_doctest_flags,
     #    verbose=True
     # )
-    t = PrefixTree()
-    t['man'] = ''
-    t['mat'] = 'object'
-    t['mattress'] = ()
-    t['map'] = 'pam'
-    t['me'] = 'you'
-    t['met'] = 'tem'
-    t['a'] = '?'
-    t['map'] = -1000
-    del t['map']
-    del t['map']
+    s = word_frequencies('cat car carpet')
+    tree = autocomplete(s, 'car', 3)
+    
