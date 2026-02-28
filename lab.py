@@ -18,35 +18,79 @@ class PrefixTree:
     """
 
     def __init__(self):
-        raise NotImplementedError
+        self.value = None
+        self.children = {}
 
     def __setitem__(self, word, value):
         """
         Mutates the tree so that the word is associated with the given value.
         Raises a TypeError if the given word is not a string.
         """
-        raise NotImplementedError
+        if(type(word) != str):
+            raise TypeError 
+        for letters in word:
+            if(letters not in self.children):
+                self.children[letters] = PrefixTree()
+                self = self.children[letters]
+            else:
+                self = self.children[letters]
+        self.value = value
+
+
+    def returnTree(self, word):
+        """
+        Returns a specific prefix tree
+        """
+        if(type(word) != str):
+            raise TypeError
+        for letters in word:
+            if(letters not in self.children):
+                return None
+            else:
+                self = self.children[letters]
+        return self
 
     def __getitem__(self, word):
         """
         Returns the value for the specified word.
-        Raises a KeyError if the given word is not in the tree.
+        Raises a KeyError if the given word is not in thve tree.
         Raises a TypeError if the given word is not a string.
         """
-        raise NotImplementedError
+        tree = self.returnTree(word)
+        if(tree == None):
+            raise KeyError
+        if(tree.value == None):
+            raise KeyError
+        else:
+            return tree.value
 
     def __contains__(self, word):
         """
         Returns a boolean indicating whether the given word has a set value in the tree.
         Raises a TypeError if the given key is not a string.
         """
-        raise NotImplementedError
+        tree = self.returnTree(word)
+        if(tree == None):
+            return False
+        if(tree.value == None):
+            return False
+        else:
+            return True
 
     def __iter__(self):
         """
         Generator that yields tuples of all the (word, value) pairs in the tree.
         """
-        raise NotImplementedError
+        s = ""
+        if(self.value != None):
+            yield (s , self.value)
+            s = ""
+        else:
+            for key in self.children:
+                tree = self.children[key]
+                s = s + key
+                yield from tree.__iter__()
+            
 
     def __delitem__(self, word):
         """
@@ -116,11 +160,22 @@ def word_filter(tree, pattern):
 
 
 if __name__ == "__main__":
-    _doctest_flags = doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS
-    doctest.testmod(optionflags=_doctest_flags)  # runs ALL doctests
+    #_doctest_flags = doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS
+    #doctest.testmod(optionflags=_doctest_flags)  # runs ALL doctests
     # doctest.run_docstring_examples( # runs doctests for one function
     #    PrefixTree.__getitem__,
     #    globals(),
     #    optionflags=_doctest_flags,
     #    verbose=True
     # )
+    t = PrefixTree()
+    t['man'] = ''
+    t['mat'] = 'object'
+    t['mattress'] = ()
+    t['map'] = 'pam'
+    t['me'] = 'you'
+    t['met'] = 'tem'
+    t['a'] = '?'
+    t['map'] = -1000
+    iter(t)
+       
