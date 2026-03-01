@@ -268,7 +268,7 @@ def word_filter(tree, pattern):
         - otherwise the character must match the character in the word.
     """
     ans = set()
-    def helper(t, pattern):
+    def helper(t, pattern, build):
         a = set()
         if('?' not in pattern and '*' not in pattern):
             if(pattern in t):
@@ -285,7 +285,7 @@ def word_filter(tree, pattern):
                         return set()
                     for k in keys:
                         #s = t.returnTree(k)
-                        tmp = helper(t,  k + pattern[idx + 1:])
+                        tmp = helper(t,  k + pattern[idx + 1:], "")
                         if(tmp != set()):
                             for items in tmp:
                                 items = pattern[:idx] + items
@@ -294,16 +294,27 @@ def word_filter(tree, pattern):
                 if(char == '*'):
                     keys = t.getKeys()
                     for k in keys:
-                        tmp = helper(t, )
+                        build = build + k
+                        tmp = helper(t, k + pattern[idx:] , build)
+                        if(tmp != set()):
+                            for items in tmp:
+                                a.add(items)
+                                build = build[:-1]
+                    if('*' in pattern):
+                        if(build in tree):
+                            return {build}
                 else:
                     t = t.returnTree(char)
 
         return a
-    return helper(tree, pattern)
+    return helper(tree, pattern, "")
 
 
-
-
+tree = word_frequencies("bat bat bark bar")
+pattern = '*'
+expected = {'bark', 'bar'}
+res = word_filter(tree, pattern)
+print(res)
 
 
     
