@@ -95,6 +95,11 @@ class PrefixTree:
         else:
             return True
 
+    def hasVal(self):
+        if(self.value == None):
+            return False
+        else:
+            return True
     
     def __iter__(self):
         """
@@ -269,6 +274,7 @@ def word_filter(tree, pattern):
     """
     ans = set()
     def helper(t, pattern, build):
+        s = ""
         a = set()
         if('?' not in pattern and '*' not in pattern):
             if(pattern in t):
@@ -293,25 +299,28 @@ def word_filter(tree, pattern):
                     return a
                 if(char == '*'):
                     keys = t.getKeys()
+                    if('*' in pattern):
+                        if(t.hasVal()):
+                            s = build
+                            a.add(s)
                     for k in keys:
-                        build = build + k
                         tmp = helper(t, k + pattern[idx:] , build)
                         if(tmp != set()):
                             for items in tmp:
                                 a.add(items)
-                                build = build[:-1]
-                    if('*' in pattern):
-                        if(build in tree):
-                            return {build}
+                    return a
                 else:
+                    x = pattern.split('*')
+                    build = build + char
                     t = t.returnTree(char)
 
         return a
     return helper(tree, pattern, "")
 
 
-tree = word_frequencies("bat bat bark bar")
-pattern = '*'
+tree = word_frequencies("man mat mattress map me met a man a a a map man met")
+tree[''] = 5
+pattern = '*t'
 expected = {'bark', 'bar'}
 res = word_filter(tree, pattern)
 print(res)
