@@ -275,19 +275,35 @@ def word_filter(tree, pattern):
         - '?' - matches any single character,
         - otherwise the character must match the character in the word.
     """
+    newP = ""
+    regexSet = {'abcdefghijklmnopqrstuvwxyz?'}
+    if(pattern == newP):
+        newP = pattern
+    elif (set(pattern) - regexSet == {'*'}):
+        newP = '*'
+    for index in range(len(pattern)):
+        if pattern[index] != '*':
+            newP += pattern[index]
+        elif(index - 1 > 0 and pattern[index - 1] != '*' and pattern[index] == '*' ):
+            newP += pattern[index]
+        elif(index + 1 < len(pattern) and pattern[index + 1] != '*' and pattern[index] == '*'):
+            newP += pattern[index]
+
+    print(newP)
+
     def helper(t, pattern, build):
         s = ""
         a = set()
         if not t:
             return set()
-        if(pattern == "" and t.hasVal()):
+        keys = t.getKeys()
+        if(pattern == ""):
             return {build}
         else:
             for idx, char in enumerate(pattern):
                 if(t == None):
                     break
                 if(char == '?'):
-                    keys = t.getKeys()
                     if(keys == []):
                         return set()
                     for k in keys:
@@ -295,25 +311,17 @@ def word_filter(tree, pattern):
                         tmp = helper(t,  k + pattern[idx + 1:], build)
                         if(tmp != set()):
                             for items in tmp:
-                                if(items in tree):
-                                    a.add(items)
-                                else:
-                                    items = pattern[:idx] + items
-                                    a.add(items)
-                    return a
+                                a.add(items)
                 if(char == '*'):
-                    keys = t.getKeys()
-                    pattern_without_star = pattern.split('*')
-                    p = ""
-                    for l in pattern_without_star:
-                        p += l
+                    p =""
+                    for index,l in enumerate(pattern):
+                        if(l == '*'):
+                            continue
+                        else:
+                            p += l
                     notinclude = helper(t, p[idx:], build)
                     for items in notinclude:
-                            if(items in tree):
-                                a.add(items)
-                            else:
-                                items = pattern[:idx] + items
-                                a.add(items)
+                            a.add(items)
                     for k in keys:
                         lst = list(pattern)
                         ins = ""
@@ -325,14 +333,11 @@ def word_filter(tree, pattern):
                                     continue
                                 else:
                                     ins += l 
+                        if(pattern == ""):
+                            ins.remove('*')
                         include = helper(t, k + ins[idx:], build)
                         for items in include:
-                            if(items in tree):
-                                a.add(items)
-                            else:
-                                items = pattern[:idx] +items
-                                a.add(items)
-                    return a
+                            a.add(items)
                 else:
                     build = build + char
                     t = t.returnTree(char)
@@ -340,11 +345,16 @@ def word_filter(tree, pattern):
                     for items in s:
                         a.add(items)
         return a
-    return helper(tree, pattern, "")
+    ans = helper(tree, newP, "")
+    result = set()
+    for a in ans:
+        if(a in tree):
+            result.add(a)
+    return result
 
 
-tree = word_frequencies("tinged, wings, things, tingle, winged")
-pattern = '**ing**'
+tree = word_frequencies("elect tenth awake")
+pattern = '????'
 expected = {'bark', 'bar'}
 res = word_filter(tree, pattern)
 print(res)
