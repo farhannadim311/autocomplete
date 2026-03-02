@@ -277,17 +277,21 @@ def word_filter(tree, pattern):
     """
     newP = ""
     regexSet = {'abcdefghijklmnopqrstuvwxyz?'}
-    if(pattern == newP):
+    lst = []
+    if(pattern == ''):
         newP = pattern
     elif (set(pattern) - regexSet == {'*'}):
         newP = '*'
     for index in range(len(pattern)):
         if pattern[index] != '*':
-            newP += pattern[index]
+            lst.append(pattern[index])
         elif(index - 1 > 0 and pattern[index - 1] != '*' and pattern[index] == '*' ):
-            newP += pattern[index]
+            lst.append(pattern[index])
         elif(index + 1 < len(pattern) and pattern[index + 1] != '*' and pattern[index] == '*'):
-            newP += pattern[index]
+            lst.append(pattern[index])
+    
+    if(lst):
+        newP = "".join(lst)
 
     print(newP)
 
@@ -313,28 +317,30 @@ def word_filter(tree, pattern):
                             for items in tmp:
                                 a.add(items)
                 if(char == '*'):
-                    p =""
+                    p =[]
                     for index,l in enumerate(pattern):
                         if(l == '*'):
                             continue
                         else:
-                            p += l
+                            p.append(l)
+                    p = "".join(p)
                     notinclude = helper(t, p[idx:], build)
                     for items in notinclude:
                             a.add(items)
                     for k in keys:
                         lst = list(pattern)
-                        ins = ""
+                        ins = []
                         for i,l in enumerate(lst):
                             if(l == '*'):
-                                ins += l
+                                ins.append(l)
                             else:
                                 if(i == 0):
                                     continue
                                 else:
-                                    ins += l 
+                                    ins.append(l)
                         if(pattern == ""):
                             ins.remove('*')
+                        ins = "".join(ins)
                         include = helper(t, k + ins[idx:], build)
                         for items in include:
                             a.add(items)
