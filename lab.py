@@ -115,6 +115,9 @@ class PrefixTree:
                 s = s[:-1]
 
         return builder(self, "")
+    
+    def __str__(self):
+        return "f{self.value} ----> {self.children}"
             
   
     def __delitem__(self, word):
@@ -272,15 +275,13 @@ def word_filter(tree, pattern):
         - '?' - matches any single character,
         - otherwise the character must match the character in the word.
     """
-    ans = set()
     def helper(t, pattern, build):
         s = ""
         a = set()
-        if('?' not in pattern and '*' not in pattern):
-            if(pattern in t):
-                return {pattern}
-            else:
-                return set()
+        if not t:
+            return set()
+        if(pattern == "" and t.hasVal()):
+            return {build}
         else:
             for idx, char in enumerate(pattern):
                 if(t == None):
@@ -291,36 +292,59 @@ def word_filter(tree, pattern):
                         return set()
                     for k in keys:
                         #s = t.returnTree(k)
-                        tmp = helper(t,  k + pattern[idx + 1:], "")
+                        tmp = helper(t,  k + pattern[idx + 1:], build)
                         if(tmp != set()):
                             for items in tmp:
-                                items = pattern[:idx] + items
-                                a.add(items)
+                                if(items in tree):
+                                    a.add(items)
+                                else:
+                                    items = pattern[:idx] + items
+                                    a.add(items)
                     return a
                 if(char == '*'):
                     keys = t.getKeys()
-                    if('*' in pattern):
-                        if(t.hasVal()):
-                            s = build
-                            a.add(s)
+                    pattern_without_star = pattern.split('*')
+                    p = ""
+                    for l in pattern_without_star:
+                        p += l
+                    notinclude = helper(t, p[idx:], build)
+                    for items in notinclude:
+                            if(items in tree):
+                                a.add(items)
+                            else:
+                                items = pattern[:idx] + items
+                                a.add(items)
                     for k in keys:
-                        tmp = helper(t, k + pattern[idx:] , build)
-                        if(tmp != set()):
-                            for items in tmp:
+                        lst = list(pattern)
+                        ins = ""
+                        for i,l in enumerate(lst):
+                            if(l == '*'):
+                                ins += l
+                            else:
+                                if(i == 0):
+                                    continue
+                                else:
+                                    ins += l 
+                        include = helper(t, k + ins[idx:], build)
+                        for items in include:
+                            if(items in tree):
+                                a.add(items)
+                            else:
+                                items = pattern[:idx] +items
                                 a.add(items)
                     return a
                 else:
-                    x = pattern.split('*')
                     build = build + char
                     t = t.returnTree(char)
-
+                    s = helper(t, pattern[idx + 1:], build)
+                    for items in s:
+                        a.add(items)
         return a
     return helper(tree, pattern, "")
 
 
-tree = word_frequencies("man mat mattress map me met a man a a a map man met")
-tree[''] = 5
-pattern = '*t'
+tree = word_frequencies("tinged, wings, things, tingle, winged")
+pattern = '**ing**'
 expected = {'bark', 'bar'}
 res = word_filter(tree, pattern)
 print(res)
